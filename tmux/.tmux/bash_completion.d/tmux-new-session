@@ -1,0 +1,12 @@
+# customized tmux new session completion
+# by ggicci
+
+have tmux &&
+_tmux_new_session()
+{
+  COMPREPLY=()
+  local cur prev
+
+  return 0
+} &&
+complete -F _tmux_new_session
