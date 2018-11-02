@@ -155,7 +155,6 @@ def main():
         m.body = opts.body
         if opts.attachment is not None:
             m.attachments = opts.attachment
-        print(m.to_json())
         m.send()
 
 
