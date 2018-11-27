@@ -12,7 +12,7 @@ from email.mime.application import MIMEApplication
 
 
 class SMTPMailer(object):
-    """Email is a simple smtp email wrapper."""
+    """SMTPMailer is an simple SMTP email sender."""
 
     def __init__(self,
                  username,
@@ -30,25 +30,29 @@ class SMTPMailer(object):
         self.subject = ''
         self.body = ''
         self.attachments = []
+        self.mime_subtype = 'plain'
 
     @classmethod
     def build_from_json(cls, rawjs):
-        """build_from_json builds an SMTPMailer from a JSON representation string.
-        smaple:
-        {
-            "smtp": {
-                "host": "smtp.alibaba-inc.com",
-                "port": 465,
-                "username": "mingjie.tmj@alibaba-inc.com",
-                "password": "******"
-            },
-            "from": "mingjie.tmj@alibaba-inc.com",
-            "to": [ "mingjie.tmj@alibaba-inc.com" ],
-            "cc": [],
-            "subject": "This is really wonderful",
-            "body": "Body Game",
-            "attachments": [ "./smtp_mailer.py" ]
-        }
+        """
+        Build an SMTPMailer from a JSON string.
+
+        Args:
+            rawjs: the JSON string, e.g.
+            {
+                "smtp": {
+                    "host": "smtp.alibaba-inc.com",
+                    "port": 465,
+                    "username": "mingjie.tmj@alibaba-inc.com",
+                    "password": "******"
+                },
+                "from": "mingjie.tmj@alibaba-inc.com",
+                "to": [ "mingjie.tmj@alibaba-inc.com" ],
+                "cc": [],
+                "subject": "This is really wonderful",
+                "body": "Body Game",
+                "attachments": [ "./smtp_mailer.py" ]
+            }
         """
         o = cls('', '')
         js = json.loads(rawjs)
@@ -67,7 +71,7 @@ class SMTPMailer(object):
         return o
 
     def send(self):
-        """send sends mail to recipients."""
+        """Send mail to recipients."""
         outer = MIMEMultipart()
         outer.set_charset('utf-8')
         outer['From'] = self.sender
@@ -76,7 +80,7 @@ class SMTPMailer(object):
         outer['Subject'] = Header(self.subject, 'utf-8')
 
         # attach plain text body
-        text_body = MIMEText(self.body, 'plain', _charset='utf-8')
+        text_body = MIMEText(self.body, self.mime_subtype, _charset='utf-8')
         outer.attach(text_body)
 
         # attach the files
@@ -98,11 +102,12 @@ class SMTPMailer(object):
         s.quit()
 
     def to_json(self):
-        """to_json returns a JSON representation string of this SMTPMailer object."""
+        """Get JSON representation string of this SMTPMailer object."""
         return json.dumps(self.__dict__, indent=4)
 
 
 def parse_args():
+    """Parse CLI tool options"""
     parser = ArgumentParser(add_help=False)
     parser.add_argument('--json', help='json representation of the SMTP mail')
     args, remaining_argv = parser.parse_known_args()
@@ -137,10 +142,13 @@ def parse_args():
         '-b', '--body', type=str, required=True, help='mail BODY')
     parser.add_argument(
         '-a', '--attachment', nargs='*', help='mail ATTACHMENTS (list)')
+    parser.add_argument(
+        '--type', type=str, help='mime type, plain or html')
     return parser.parse_args(remaining_argv)
 
 
 def main():
+    """CLI tool entrypoint"""
     opts = parse_args()
 
     if opts.json is not None:
@@ -153,6 +161,7 @@ def main():
             m.cc = opts.cc
         m.subject = opts.subject
         m.body = opts.body
+        m.mime_subtype = 'plain' if opts.type in ('plain', 'html') else opts.type
         if opts.attachment is not None:
             m.attachments = opts.attachment
         m.send()
