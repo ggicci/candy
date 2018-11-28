@@ -16,7 +16,7 @@ install_certbot_if_not_exists() {
 
 ensure_execution_environment() {
     install_certbot_if_not_exists
-    mkdir -p "$(pwd)/letsencrypt/{etc,lib,log,www}"
+    mkdir -p "$(pwd)/letsencrypt/"{etc,lib,log,www}
 }
 
 usage() {
