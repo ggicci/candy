@@ -161,7 +161,7 @@ def main():
             m.cc = opts.cc
         m.subject = opts.subject
         m.body = opts.body
-        m.mime_subtype = 'plain' if opts.type in ('plain', 'html') else opts.type
+        m.mime_subtype = opts.type if opts.type in ('plain', 'html') else 'plain'
         if opts.attachment is not None:
             m.attachments = opts.attachment
         m.send()
