@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+candy::help() {
+  >&2 echo "
+Candy: Just a script toolbox.
+
+Usage:
+  candy [ {options} ] {command} [ {command_args} ]
+
+Examples:
+  candy mysql::connect "mysql-1"
+  candy ssl_cert "certs@ggicci.me" "ggicci.me"
+
+{options}:
+  --help: show help menu
+  --version: show candy version
+"
+}
+
+main() {
+  local prog="$0"
+  local command="${1:-notset}"
+
+  # echo "Program: ${prog}"
+  # echo "Command: ${command}"
+
+  if [[ "${command}" == "notset" ]]; then
+    candy::help
+    exit 1
+  fi
+
+  # Try bash.
+  local target
+  local runner
+  if [[ -f "${command}.sh" ]]; then
+    target="${command}.sh"
+    runner=bash
+  elif [[ -f "${command}.py" ]]; then
+    target="${command}.py"
+    runner=python
+  elif [[ -f "${command}.js" ]]; then
+    target="${command}.js"
+    runner=node
+  fi
+
+  if [[ "${target}" == "" ]]; then
+    >&2 echo "candy: no such command: ${command}"
+    exit 127
+  fi
+
+  shift 2
+  ${runner} "${target}" "$@"
+}
+
+main "$@"
+
